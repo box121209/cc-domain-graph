@@ -14,6 +14,9 @@ python ./python/make_synthetic.py $FILE -n 2000
 
 import sys, time, os, shutil
 import numpy as np
+from binascii import unhexlify
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 #####################################################################
 # read input parameters
@@ -22,6 +25,7 @@ import numpy as np
 temp = 1.0
 quote_length = 1000
 unroll = 20
+init = '\n' * unroll
 
 # command line:
 try:
@@ -30,12 +34,15 @@ except:
     print "Usage: python ", sys.argv[0], "infile [options]"
     print "Options are:"
     print "        -n length of output [1000]"
+    print "        -init        ['\n ... \n']"
     sys.exit(1)
 
 while len(sys.argv) > 1:
     option = sys.argv[1];               del sys.argv[1]
     if option == '-n':
         quote_length = int(sys.argv[1]); del sys.argv[1]
+    elif option == '-init':
+        init = sys.argv[1];             del sys.argv[1]
     else:
         print sys.argv[0],': invalid option', option
         sys.exit(1)
@@ -122,25 +129,37 @@ model.set_weights(model_wts)
 #####################################################################
 # generate bytes
 
-init_quote = '\n' * unroll
-generated = [b.encode('hex') for b in init_quote]
-sys.stdout.write(''.join([unichr(int(h, 16)) for h in generated]))
-
-for i in range(quote_length):
+def stepping(window):
     x = np.zeros((1, unroll, INSIZE))
     if INSIZE == 256:
-        for t,b in enumerate(generated):
+        for t,b in enumerate(window):
             x[0, t, byte_idx[b]] = 1.0
     elif INSIZE == 8:
-        for t,b in enumerate(generated):
+        for t,b in enumerate(window):
             x[0, t, :] = binabet[byte_idx[b]]
-    preds = model.predict(x, verbose=0)[0]
+    return model.predict(x, verbose=0)[0]
+
+output = [b.encode('hex') for b in init]
+
+while len(output) < unroll:
+    output = ['\n'.encode('hex')] + output
+
+window = output[:unroll]
+idx = unroll
+
+while idx < len(output):
+    preds = stepping(window)
+    next_byte = output[idx]
+    window = window[1:] + [next_byte]
+    idx += 1
+
+for i in range(quote_length):
+    preds = stepping(window)
     next_index = sample(preds, temperature=temp)
     next_byte = hexabet[next_index]
-    generated = generated[1:] + [next_byte]
-
-    sys.stdout.write(unichr(int(next_byte, 16)))
-    sys.stdout.flush()
-print('\n')
+    window = window[1:] + [next_byte]
+    output += [next_byte]
+    
+print(unhexlify(''.join(output)))
 
 #####################################################################

@@ -1,15 +1,14 @@
 """
 Example usage:
 
-python ./python/make_synthetic.py model_from_big_domain_string_1.gz_arch_8_16_unroll_20_step_3_dropout_0.1.npy
+FILE=model_from_big_domain_string_1.gz_arch_8_16_unroll_20_step_3_dropout_0.1.npy
+
+python ./python/make_synthetic.py $FILE -n 10
 
 """
 
 import sys, time, os, shutil
 import numpy as np
-import gzip
-import math
-import time
 
 #####################################################################
 # read input parameters
@@ -25,14 +24,13 @@ try:
 except:
     print "Usage: python ", sys.argv[0], "infile [options]"
     print "Options are:"
-    print "        -arch (input + hidden layer sizes) [8,16]"
+    print "        -n length of output [1000]"
     sys.exit(1)
 
 while len(sys.argv) > 1:
     option = sys.argv[1];               del sys.argv[1]
-    if option == '-arch':
-        arch = [int(x) for x in sys.argv[1].split(',')]
-        del sys.argv[1]
+    if option == '-n':
+        quote_length = int(sys.argv[1]); del sys.argv[1]
     else:
         print sys.argv[0],': invalid option', option
         sys.exit(1)
@@ -76,12 +74,21 @@ hexabet = [hx(x) for x in range(256)]
 byte_idx = dict((c, i) for i,c in enumerate(hexabet))
 nlayers = len(nhidden)
 
+def sample(a, temperature=1.0):
+    """
+    Samples an index from a probability array;
+    higher temperature raises the entropy and vice versa    
+    """
+    a = np.log(a) / temperature
+    dist = np.exp(a) / np.sum(np.exp(a))
+    choices = range(len(a)) 
+    return np.random.choice(choices, p=dist)
 
 #####################################################################
 # build the model: stacked LSTM
 
 from keras.models import Sequential
-from keras.layers.core import Dense, Activation, Dropout
+from keras.layers.core import Dense, Activation
 from keras.layers.recurrent import LSTM, Recurrent
 
 model = Sequential()
@@ -108,14 +115,17 @@ model.set_weights(model_wts)
 # generate bytes
 
 init_quote = '\n' * unroll
-
 generated = [b.encode('hex') for b in init_quote]
 sys.stdout.write(''.join([unichr(int(h, 16)) for h in generated]))
-for i in range(quote_length):
-    x = np.zeros((1, unroll, 256))
-    for t,b in enumerate(generated):
-        x[0, t, byte_idx[b]] = 1.0
 
+for i in range(quote_length):
+    x = np.zeros((1, unroll, INSIZE))
+    if INSIZE == 256:
+        for t,b in enumerate(generated):
+            x[0, t, byte_idx[b]] = 1.0
+    elif INSIZE == 8:
+        for t,b in enumerate(generated):
+            x[0, t, :] = binabet[byte_idx[b]]
     preds = model.predict(x, verbose=0)[0]
     next_index = sample(preds, temperature=temp)
     next_byte = hexabet[next_index]
@@ -123,5 +133,6 @@ for i in range(quote_length):
 
     sys.stdout.write(unichr(int(next_byte, 16)))
     sys.stdout.flush()
+print('\n')
 
 #####################################################################

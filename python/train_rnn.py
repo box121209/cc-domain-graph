@@ -25,6 +25,8 @@ step = 3
 dropout = 0.1
 batch_size = 128
 verbose = 1
+datapath = './sdata'
+modelpath = './models'
 
 # fixed:
 INSIZE  = 8
@@ -37,6 +39,8 @@ except:
     print "Usage: python ", sys.argv[0], "infile [options]"
     print "Options are:"
     print "        -o outfile "
+    print "        -datapath [./sdata]"
+    print "        -modelpath [./models]"
     print "        -unroll [20]"
     print "        -step [3]"
     print "        -dropout [0.1]"
@@ -48,6 +52,10 @@ while len(sys.argv) > 1:
     option = sys.argv[1];               del sys.argv[1]
     if option == '-o':
         outfile = sys.argv[1];          del sys.argv[1]
+    elif option == '-datapath':
+        datapath = sys.argv[1];          del sys.argv[1]
+    elif option == '-modelpath':
+        modelpath = sys.argv[1];          del sys.argv[1]
     elif   option == '-unroll':
         unroll = int(sys.argv[1]);      del sys.argv[1]
     elif option == '-step':
@@ -138,7 +146,7 @@ print(model.summary())
 
 # load current weights
 try:
-    model.set_weights(np.load("./models/%s" % outfile))
+    model.set_weights(np.load("%s/%s" % (modelpath, outfile)))
     print("Initialising with weights found at ./models/%s" % outfile)
 except:
     print("Can't find existing model, initialising random weights")
@@ -147,9 +155,9 @@ except:
 #####################################################################
 # read training data
 
-print("Reading data file ./sdata/%s ..." % infile)
+print("Reading data file %s/%s ..." % (datapath, infile))
 t0 = time.clock()
-with gzip.open("./sdata/%s" % infile, 'rb') as f:
+with gzip.open("%s/%s" % (datapath, infile), 'rb') as f:
     content = f.read()
 
 bytes = [b.encode('hex') for b in content]
@@ -202,7 +210,7 @@ print("Done in %g seconds" % (t1 - t0))
 #####################################################################
 # report
 
-np.save("./models/%s" % outfile, model.get_weights())
-print("Model written to ./models/%s" % outfile)
+np.save("%s/%s" % (modelpath, outfile), model.get_weights())
+print("Model written to %s/%s" % (modelpath, outfile))
 
 #####################################################################

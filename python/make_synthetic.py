@@ -27,15 +27,17 @@ temp = 1.0
 quote_length = 1000
 unroll = 20
 init = '\n' * unroll
+modelpath = "./models"
 
 # command line:
 try:
-    infile = "./models/%s" % sys.argv[1];   del sys.argv[1]
+    infile = sys.argv[1];   del sys.argv[1]
 except:
     print "Usage: python ", sys.argv[0], "infile [options]"
     print "Options are:"
     print "        -n length of output [1000]"
-    print "        -init        ['\n ... \n']"
+    print "        -init        [newlines]"
+    print "        -modelpath        [./models]"
     sys.exit(1)
 
 while len(sys.argv) > 1:
@@ -44,13 +46,18 @@ while len(sys.argv) > 1:
         quote_length = int(sys.argv[1]); del sys.argv[1]
     elif option == '-init':
         init = sys.argv[1];             del sys.argv[1]
+    elif option == '-modelpath':
+        modelpath = sys.argv[1];             del sys.argv[1]
     else:
         print sys.argv[0],': invalid option', option
         sys.exit(1)
-    
+
+
 #####################################################################
 # read model file, parse architecture
 
+infile = "%s/%s" % (modelpath, infile)
+   
 try:
     model_wts = np.load(infile)
 except:

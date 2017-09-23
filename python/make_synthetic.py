@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Example usage:
 
@@ -8,7 +9,7 @@ FILE=model_from_mediumstring.gz_arch_8_16_unroll_20_step_3_dropout_0.1.npy
 FILE=model_from_smallstring.gz_arch_8_16_16_unroll_20_step_3_dropout_0.1.npy
 FILE=model_from_smallstring.gz_arch_256_16_16_unroll_20_step_3_dropout_0.1.npy
 
-python ./python/make_synthetic.py $FILE -n 2000
+python ./python/make_synthetic.py $FILE -n 2000 -init 'www.github.com'
 
 """
 
@@ -16,7 +17,7 @@ import sys, time, os, shutil
 import numpy as np
 from binascii import unhexlify
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' # suppresses Tensorflow messages
 
 #####################################################################
 # read input parameters

@@ -138,7 +138,7 @@ print(model.summary())
 
 # load current weights
 try:
-    model.set_weights(np.load("./models/%s" %outfile))
+    model.set_weights(np.load("./models/%s" % outfile))
     print("Initialising with weights found at ./models/%s" % outfile)
 except:
     print("Can't find existing model, initialising random weights")

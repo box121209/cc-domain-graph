@@ -1,9 +1,14 @@
 """
 Example usage:
 
-FILE=model_from_big_domain_string_1.gz_arch_8_16_unroll_20_step_3_dropout_0.1.npy
+FILE=model_from_big_domain_string_1.gz_arch_8_16_unroll_20_step_3_dropout_0.1_iter_1.npy
+FILE=model_from_big_domain_string_1.gz_arch_8_16_unroll_20_step_3_dropout_0.1_iter_7.npy
+FILE=model_from_big_domain_string_1.gz_arch_256_16_unroll_20_step_3_dropout_0.1.npy
+FILE=model_from_mediumstring.gz_arch_8_16_unroll_20_step_3_dropout_0.1.npy
+FILE=model_from_smallstring.gz_arch_8_16_16_unroll_20_step_3_dropout_0.1.npy
+FILE=model_from_smallstring.gz_arch_256_16_16_unroll_20_step_3_dropout_0.1.npy
 
-python ./python/make_synthetic.py $FILE -n 10
+python ./python/make_synthetic.py $FILE -n 2000
 
 """
 
@@ -36,17 +41,20 @@ while len(sys.argv) > 1:
         sys.exit(1)
     
 #####################################################################
-# read model file
+# read model file, parse architecture
 
 try:
     model_wts = np.load(infile)
 except:
     print("Can't find model file")
-    
-arch = [model_wts[2*(i+1)].shape[0] for i in range(len(model_wts)/2)]
 
-INSIZE = model_wts[0].shape[0]
-nhidden = [a/4 for a in arch[:-1]]
+arch = [model_wts[i].shape[0]\
+       for i in range(len(model_wts))\
+       if len(model_wts[i].shape) == 2] 
+
+INSIZE = arch[0]
+nh = len(arch)/2
+nhidden = [arch[1+2*i] for i in range(nh)]
 OUTSIZE = 256
 
 #####################################################################

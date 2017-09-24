@@ -2,12 +2,7 @@
 """
 Example usage:
 
-FILE=model_from_big_domain_string_1.gz_arch_8_16_unroll_20_step_3_dropout_0.1_iter_1.npy
-FILE=model_from_big_domain_string_1.gz_arch_8_16_unroll_20_step_3_dropout_0.1_iter_7.npy
-FILE=model_from_big_domain_string_1.gz_arch_256_16_unroll_20_step_3_dropout_0.1.npy
-FILE=model_from_mediumstring.gz_arch_8_16_unroll_20_step_3_dropout_0.1.npy
-FILE=model_from_smallstring.gz_arch_8_16_16_unroll_20_step_3_dropout_0.1.npy
-FILE=model_from_smallstring.gz_arch_256_16_16_unroll_20_step_3_dropout_0.1.npy
+FILE=model_from_big_domain_string_1.gz_arch_8_16_unroll_20_step_3_dropout_0.1_iter_17.npy
 
 python ./python/make_synthetic.py $FILE -n 2000 -init 'www.github.com'
 
@@ -37,6 +32,7 @@ except:
     print "Options are:"
     print "        -n length of output [1000]"
     print "        -init        [newlines]"
+    print "        -temp        [1.0]"
     print "        -modelpath        [./models]"
     sys.exit(1)
 
@@ -46,6 +42,8 @@ while len(sys.argv) > 1:
         quote_length = int(sys.argv[1]); del sys.argv[1]
     elif option == '-init':
         init = sys.argv[1];             del sys.argv[1]
+    elif option == '-temp':
+        temp = float(sys.argv[1]);           del sys.argv[1]
     elif option == '-modelpath':
         modelpath = sys.argv[1];             del sys.argv[1]
     else:
@@ -137,14 +135,15 @@ model.set_weights(model_wts)
 #####################################################################
 # generate bytes
 
+x = np.zeros((1, unroll, INSIZE))
+
 def stepping(window):
-    x = np.zeros((1, unroll, INSIZE))
-    if INSIZE == 256:
-        for t,b in enumerate(window):
-            x[0, t, byte_idx[b]] = 1.0
-    elif INSIZE == 8:
+    if INSIZE == 8:
         for t,b in enumerate(window):
             x[0, t, :] = binabet[byte_idx[b]]
+    elif INSIZE == 256:
+        for t,b in enumerate(window):
+            x[0, t, byte_idx[b]] = 1.0
     return model.predict(x, verbose=0)[0]
 
 output = [b.encode('hex') for b in init]

@@ -112,7 +112,9 @@ jupyter notebook --generate-config
 jupyter notebook password
 
 cd $HOME/cc-domain-graph
-jupyter notebook &
+
+# jupyter notebook &
+# nohup python ./python/train_rnn.py big_domain_string_1.gz -arch 16,16 -niters 64 > log.out &
 
 # Post-compute:
 

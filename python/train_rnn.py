@@ -206,10 +206,12 @@ qiters = niters / 5
 riters = niters % 5
 t0 = time.clock()
 for i in range(qiters):
+    print("Epoch block %d:" % i)
     model.fit(X, y, batch_size=batch_size, epochs=5, verbose=verbose)
     np.save("%s/%s_iter_%d.npy" % (modelpath, outfile, 5*(i+1)),
             model.get_weights())
 if riters > 0:
+    print("Epoch block %d:" % qiters)
     model.fit(X, y, batch_size=batch_size, epochs=riters, verbose=verbose)
     np.save("%s/%s_iter_%d.npy" % (modelpath, outfile, niters), model.get_weights())
 t1 = time.clock()

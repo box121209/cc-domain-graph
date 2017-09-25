@@ -79,7 +79,7 @@ if outfile == "":
     outfile = "model_from_%s_arch_%d" % (infile, INSIZE)
 for i in nhidden: 
     outfile += "_%d" % i
-outfile += "_unroll_%d_step_%d_dropout_%g.npy" % (unroll, step, dropout)
+outfile += "_unroll_%d_step_%d_dropout_%g" % (unroll, step, dropout)
     
 
 #####################################################################
@@ -147,7 +147,7 @@ print(model.summary())
 # load current weights
 try:
     model.set_weights(np.load("%s/%s" % (modelpath, outfile)))
-    print("Initialising with weights found at ./models/%s" % outfile)
+    print("Initialising with weights found at ./models/%s.npy" % outfile)
 except:
     print("Can't find existing model, initialising random weights")
 
@@ -202,15 +202,22 @@ t1 = time.clock()
 print("Arrays written in %g seconds" % (t1 - t0))
 
 print("Fitting model ...")
+qiters = niters / 5
+riters = niters % 5
 t0 = time.clock()
-model.fit(X, y, batch_size=batch_size, epochs=niters, verbose=verbose)
+for i in range(qiters):
+    model.fit(X, y, batch_size=batch_size, epochs=5, verbose=verbose)
+    np.save("%s/%s_iter_%d.npy" % (modelpath, outfile, 5*(i+1)),
+            model.get_weights())
+if riters > 0:
+    model.fit(X, y, batch_size=batch_size, epochs=riters, verbose=verbose)
+    np.save("%s/%s_iter_%d.npy" % (modelpath, outfile, niters), model.get_weights())
 t1 = time.clock()
 print("Done in %g seconds" % (t1 - t0))
 
 #####################################################################
 # report
 
-np.save("%s/%s" % (modelpath, outfile), model.get_weights())
 print("Model written to %s/%s" % (modelpath, outfile))
 
 #####################################################################

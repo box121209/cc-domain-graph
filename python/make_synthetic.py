@@ -4,11 +4,10 @@ Example usage:
 
 FILE=model_from_big_domain_string_1.gz_arch_8_16_unroll_20_step_3_dropout_0.1_iter_17.npy
 
-python ./python/make_synthetic.py $FILE -n 2000 -init 'www.github.com'
+python ./python/make_synthetic.py $FILE -n 2000 -init 'github.com'
 
 """
 
-import sys, time, os, shutil
 import numpy as np
 from binascii import unhexlify
 
@@ -100,8 +99,8 @@ def sample(a, temperature=1.0):
     Samples an index from a probability array;
     higher temperature raises the entropy and vice versa    
     """
-    a = np.log(a) / temperature
-    dist = np.exp(a) / np.sum(np.exp(a))
+    a = a**(1/temperature)
+    dist = a / np.sum(a)
     choices = range(len(a)) 
     return np.random.choice(choices, p=dist)
 

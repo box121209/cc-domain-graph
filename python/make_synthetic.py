@@ -8,6 +8,7 @@ python ./python/make_synthetic.py $FILE -n 2000 -init 'github.com'
 
 """
 
+import sys, os
 import numpy as np
 from binascii import unhexlify
 

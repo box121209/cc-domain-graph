@@ -90,9 +90,9 @@ def hexify(c):
 
 def domain_string(domain, path_set):
     """
-    Takes domain and concatenates with path URIs separated by newlines.. 
+    Takes domain and concatenates with sorted path URIs separated by newlines.
     """
-    out = domain + '\n' + '\n'.join(list(path_set)) + '\n\n\n'
+    out = domain + '\n' + '\n'.join(sorted(list(path_set))) + '\n\n\n'
     return out
 
 def nonlatin_detector(dom):

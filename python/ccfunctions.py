@@ -54,25 +54,34 @@ def parse_links(record):
                     
 def parse_urls(record):
     """
-    Takes WARC record and outputs all pairs (domain, path) from URIs, if these exist.
-    It searches both target URI and out-links and does not distinguish between them.
+    Takes WARC record and outputs all triples (domain, path, was_crawled) from URIs, if these exist.
+    It searches both target URI (was_crawled = 1) and out-links (was_crawled = 0). 
     """
     url_list = []
     try:
         page_url = record['WARC-Header-Metadata']['WARC-Target-URI']
         x = urlparse.urlparse(page_url)
-        url_list += [(x.netloc, x.path)]
+        if len(x.path) > 1:
+            url_list += [(x.netloc, x.path, 1)]
     except:
         pass
     try:    
         links = record['Payload-Metadata']['HTTP-Response-Metadata']['HTML-Metadata']['Links']
         for url in links:
             x = urlparse.urlparse(url['url'])
-            url_list += [(x.netloc, x.path)]
+            if len(x.path) > 1:
+                url_list += [(x.netloc, x.path, 0)]
     except:
         pass
         
     return url_list
+
+def depth(uri):
+    return uri[:-1].count('/')
+
+def length(uri):
+    return len(uri) - uri.count('/')
+
 
 def hexify(c):
     """
@@ -90,9 +99,9 @@ def hexify(c):
 
 def domain_string(domain, path_set):
     """
-    Takes domain and concatenates with sorted path URIs separated by newlines.
+    Takes domain and concatenates with path URIs separated by newlines.
     """
-    out = domain + '\n' + '\n'.join(sorted(list(path_set))) + '\n\n\n'
+    out = domain + '\n' + '\n'.join(sorted([x[0] for x in list(path_set)])) + '\n\n\n'
     return out
 
 def nonlatin_detector(dom):

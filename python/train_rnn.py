@@ -5,6 +5,8 @@ python ./python/train_rnn.py smallstring.gz -arch 16,16
 python ./python/train_rnn.py mediumstring.gz -arch 16 -niters 1
 python ./python/train_rnn.py big_domain_string_1.gz -arch 16 -niters 1
 
+nohup python ./python/train_rnn.py big_domain_string_1_with_nonlatin_1pt05_12287_1024.gz -arch 128,128 -niters 100 -step 5 > log.out
+
 """
 
 import sys, time, os, shutil
@@ -29,7 +31,7 @@ datapath = './sdata'
 modelpath = './models'
 
 # fixed:
-INSIZE  = 8
+INSIZE  = 256
 OUTSIZE = 256
 
 # command line:

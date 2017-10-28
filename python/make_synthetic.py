@@ -79,7 +79,7 @@ def bn(x):
     """
     str = bin(x)[2:]
     while len(str) < 8:
-	str = '0' + str
+        str = '0' + str
     return [int(i) for i in list(str)]
 
 def hx(i):
@@ -135,9 +135,10 @@ model.set_weights(model_wts)
 #####################################################################
 # generate bytes
 
-x = np.zeros((1, unroll, INSIZE))
 
+"""
 def stepping(window):
+    x = np.zeros((1, unroll, INSIZE))
     if INSIZE == 8:
         for t,b in enumerate(window):
             x[0, t, :] = binabet[byte_idx[b]]
@@ -166,7 +167,42 @@ for i in range(quote_length):
     next_byte = hexabet[next_index]
     window = window[1:] + [next_byte]
     output += [next_byte]
-    
+ 
 print(unhexlify(''.join(output)))
+"""
+
+
+def stepping(window):
+    x = np.zeros((1, unroll, INSIZE))
+    if INSIZE == 8:
+        for t,b in enumerate(window):
+            x[0, t, :] = binabet[b]
+    elif INSIZE == 256:
+        for t,b in enumerate(window):
+            x[0, t, b] = 1.0
+    return model.predict(x, verbose=0)[0]
+
+output = [int(b.encode('hex'), 16) for b in init]
+
+while len(output) < unroll:
+    output = [int('\n'.encode('hex'), 16)] + output
+
+window = output[:unroll]
+idx = unroll
+
+while idx < len(output):
+    preds = stepping(window)
+    next_byte = output[idx]
+    window = window[1:] + [next_byte]
+    idx += 1
+
+for i in range(quote_length):
+    preds = stepping(window)
+    next_byte = sample(preds, temperature=temp)
+    window = window[1:] + [next_byte]
+    output += [next_byte]
+ 
+print(bytearray(output))
+
 
 #####################################################################

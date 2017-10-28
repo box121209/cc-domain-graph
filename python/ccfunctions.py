@@ -1,11 +1,12 @@
-import boto
-from boto.s3.key import Key
-from gzipstream import GzipStreamFile
-from pyspark.sql.types import *
+#import boto
+#from boto.s3.key import Key
+#from gzipstream import GzipStreamFile
+#from pyspark.sql.types import *
+#import warc
+#import ujson as json
+
 from math import log
 from collections import Counter
-import warc
-import ujson as json
 import urlparse
 import re
 

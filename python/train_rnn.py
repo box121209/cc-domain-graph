@@ -93,7 +93,7 @@ def bn(x):
     """
     str = bin(x)[2:]
     while len(str) < 8:
-	str = '0' + str
+        str = '0' + str
     return [int(i) for i in list(str)]
 
 def hx(i):

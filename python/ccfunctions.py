@@ -102,7 +102,7 @@ def domain_string(domain, path_set):
     """
     Takes domain and concatenates with path URIs separated by newlines.
     """
-    out = domain + '\n' + '\n'.join(sorted([x[0] for x in list(path_set)])) + '\n\n\n'
+    out = domain + '\n' + '\n'.join(sorted([x[0] for x in list(path_set)]))
     return out
 
 def nonlatin_detector(dom):
@@ -129,9 +129,9 @@ def string_features_v1(str):
     Coarse first version of a feature vector for a string.
     A placeholder for stronger versions.
     """
-    N = float(len(str))
+    N = float(length(str))
     if N==0: return None
-    a = len(re.findall(r'/', str))/N
+    a = depth(str)
     b = len(re.findall(r'\.', str))/N
     c = len(re.findall(r'-', str))/N
     d = len(re.findall(r'_', str))/N
@@ -139,29 +139,22 @@ def string_features_v1(str):
     num = len(re.findall(r'[0-9]', str))/N
     return [log(N), a, b, c, d, num, cap]
 
-def string_features_hex(hexstr):
-    """
-    Symbol distribution of a hexalised string.
-    """
-    out = dict([(x,0) for x in hexabet])
-    ct = dict(Counter(hexstr.split()))
-    N = len(hexstr.split())
+def string_byte_dist(str):
+    bytes = [int(b.encode('utf-8').encode('hex'), 16) for b in str]
+    out = dict([(x,0) for x in range(256)])
+    ct = dict(Counter(bytes))
     for k in out.keys():
-        if k in ct.keys():
+         if k in ct.keys():
             out[k] += ct[k]
     out = [v[1] for v in sorted(out.iteritems(), key=lambda (k,v): k)]
-    out = [float(x)/N for x in out]
+    out = [float(x)/sum(out) for x in out]
     return out
 
 def string_features_v2(str):
     """
     Version 2: combine the hexal distribution with the previous string statistics.
     """
-    N = float(len(str))
-    if N==0: return None
-    cap = len(re.findall(r'[A-Z]', str))/N
-    num = len(re.findall(r'[0-9]', str))/N
-    return string_features_hex(hexalise(str)) + [num, cap, log(N)] 
+    return string_features_v1(str) + string_byte_dist(str)
 
 """
 PLAN: evaluate features via a trained RNN for additional vector representation
